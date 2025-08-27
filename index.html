@@ -43,6 +43,7 @@
       border-radius: 16px;
       overflow: hidden;
       background: #0b0d12;
+      margin: 0 auto;
     }
     .frame img {
       width: 100%;
@@ -87,20 +88,36 @@
       display: grid; gap: 6px; padding: 2px 6px 8px;
       text-align: center;
     }
-    .name { font-weight: 700; font-size: clamp(18px, 2.25vw, 22px); letter-spacing: .2px; }
-    .deity { color: var(--muted); font-size: 14px; }
+    .name { font-weight: 700; font-size: clamp(18px, 2.5vw, 22px); letter-spacing: .2px; }
+    .deity { color: var(--muted); font-size: clamp(14px, 2vw, 16px); }
 
     .footerNote { color: var(--muted); font-size: 12px; text-align: center; margin-top: 6px; }
     a { color: var(--fg); }
 
-    /* Swipe hints on small screens */
     @media (hover: none) and (pointer: coarse) {
       .navBtn { display: none; }
+    }
+
+    /* Modifiche specifiche per mobile */
+    @media (max-width: 600px) {
+      .frame {
+        width: 90vw;
+      }
+      .name {
+        font-size: 20px;
+        font-weight: bold;
+        text-align: center;
+      }
+      .deity {
+        font-size: 16px;
+        font-weight: bold;
+        text-align: center;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="wrap" role="application" aria-label="Galleria di 11 foto con scorrimento in loop">
+  <div class="wrap" role="application" aria-label="Galleria di foto con scorrimento in loop">
     <div class="stage">
       <div class="frame" id="frame" aria-live="polite">
         <img id="photo" src="" alt="" />
@@ -120,13 +137,6 @@
     <div class="footerNote">Suggerimento: usa le frecce ← → della tastiera o scorri con il dito. Le immagini scorrono in loop.</div>
   </div>
 
-  <!--
-    🔧 Come usare
-    1) Sostituisci i percorsi in "items" con le tue 11 immagini (consigliato 1:1 e almeno 1000×1000px).
-    2) Modifica i campi "name" e "deity" secondo le tue necessità.
-    3) Mantieni esattamente 11 elementi per rispettare il requisito.
-    4) Salva questo file come index.html in una cartella insieme alla cartella /images con le 11 foto.
-  -->
   <script id="gallery-data" type="application/json">
   {
     "items": [
@@ -141,14 +151,13 @@
       { "src": "Images/9.png",  "name": "Martina",  "deity": "Demetra" },
       { "src": "Images/10.png", "name": "Rosaria", "deity": "Afrodite" },
       { "src": "Images/11.png", "name": "Assia", "deity": "Artemide" },
-      { "src": "Images/12.png", "name": "Daniele", "deity": "Ermes" },
+      { "src": "Images/12.png", "name": "Daniele", "deity": "Ermes" }
     ]
   }
   </script>
 
   <script>
     (function(){
-      /** Lettura dati dal blocco JSON inline (statico, senza server) */
       function readData(){
         const el = document.getElementById('gallery-data');
         try { return JSON.parse(el.textContent).items || []; }
@@ -157,11 +166,11 @@
 
       const items = readData();
       if (!Array.isArray(items) || items.length === 0) {
-        alert('Nessun elemento nella galleria. Inserisci le 11 foto nel JSON.');
+        alert('Nessun elemento nella galleria. Inserisci le foto nel JSON.');
         return;
       }
 
-      const total = items.length; // dovrebbe essere 11, ma funziona per qualsiasi numero ≥1
+      const total = items.length;
       let index = 0;
 
       const frame  = document.getElementById('frame');
@@ -170,7 +179,6 @@
       const deityEl= document.getElementById('deity');
       const dotsEl = document.getElementById('dots');
 
-      // Crea i pallini di progresso
       const dots = [];
       for (let i=0;i<total;i++){
         const d = document.createElement('div');
@@ -185,7 +193,7 @@
       }
 
       function render(newIndex){
-        index = (newIndex % total + total) % total; // modulo sicuro anche con numeri negativi
+        index = (newIndex % total + total) % total;
         const item = items[index];
         frame.classList.add('loading');
         const nextImg = new Image();
@@ -194,13 +202,11 @@
           img.alt = (item.name ? item.name + ' – ' : '') + (item.deity || '');
           nameEl.textContent = item.name || '';
           deityEl.textContent = item.deity || '';
-          // Aggiorna dots
           dots.forEach((d,i)=> d.classList.toggle('active', i===index));
           frame.classList.remove('loading');
         };
         nextImg.src = item.src;
 
-        // Precarica vicini per scorrimento fluido
         const nxt = items[(index+1)%total]?.src;
         const prv = items[(index-1+total)%total]?.src;
         if (nxt) preload(nxt);
@@ -213,13 +219,11 @@
       document.getElementById('nextBtn').addEventListener('click', next);
       document.getElementById('prevBtn').addEventListener('click', prev);
 
-      // Tastiera
       window.addEventListener('keydown', (e)=>{
         if (e.key === 'ArrowRight') next();
         else if (e.key === 'ArrowLeft') prev();
       });
 
-      // Touch swipe
       let startX = null, startY = null, moved = false;
       const swipeZone = frame;
       swipeZone.addEventListener('touchstart', e=>{
@@ -237,7 +241,6 @@
         startX = startY = null; moved = false;
       });
 
-      // Animazione lieve in cambio slide
       let lastIndex = 0;
       const animate = (toRight)=>{
         img.style.transform = `scale(1.02) translateX(${toRight?'-12px':'12px'})`;
@@ -253,7 +256,6 @@
         originalRender(newIndex);
       };
 
-      // Avvio
       render(0);
     })();
   </script>
